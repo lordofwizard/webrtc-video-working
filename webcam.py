@@ -9,23 +9,22 @@ from aiortc.contrib.media import MediaPlayer, MediaRelay
 ROOT = os.path.dirname(__file__)
 
 relay = None
-webcam = None
-
+webcam1 = None
+webcam2 = None
 
 def create_local_tracks():
-    global relay, webcam
+    global relay, webcam1, webcam2
 
     options = {"framerate": "30", "video_size": "1280x720"}
     if relay is None:
-        webcam = MediaPlayer("/dev/video0", format="v4l2", options=options)
+        webcam1 = MediaPlayer("/dev/video0", format="v4l2", options=options)
+        webcam2 = MediaPlayer("/dev/video4", format="v4l2", options=options)
         relay = MediaRelay()
-    return None, relay.subscribe(webcam.video)
-
+    return relay.subscribe(webcam1.video), relay.subscribe(webcam2.video)
 
 async def index(request):
     content = open(os.path.join(ROOT, "index.html"), "r").read()
     return web.Response(content_type="text/html", text=content)
-
 
 async def offer(request):
     params = await request.json()
@@ -42,10 +41,12 @@ async def offer(request):
             pcs.discard(pc)
 
     # Open media source
-    _, video = create_local_tracks()
+    video1, video2 = create_local_tracks()
 
-    if video:
-        pc.addTrack(video)
+    if video1:
+        pc.addTrack(video1)
+    if video2:
+        pc.addTrack(video2)
 
     await pc.setRemoteDescription(offer)
 
@@ -59,9 +60,7 @@ async def offer(request):
         ),
     )
 
-
 pcs = set()
-
 
 async def on_shutdown(app):
     # Close peer connections
@@ -69,10 +68,8 @@ async def on_shutdown(app):
     await asyncio.gather(*coros)
     pcs.clear()
 
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-
     app = web.Application()
     app.on_shutdown.append(on_shutdown)
     app.router.add_get("/", index)

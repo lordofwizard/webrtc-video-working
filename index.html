@@ -10,7 +10,7 @@
     }
 
     video {
-        width: 100%;
+        width: 49%;
     }
 
     .option {
@@ -19,6 +19,8 @@
 
     #media {
         max-width: 1280px;
+        display: flex;
+        justify-content: space-between;
     }
     </style>
 </head>
@@ -31,7 +33,8 @@
     <h2>Media</h2>
 
     <audio id="audio" autoplay="true"></audio>
-    <video id="video" autoplay="true" playsinline="true"></video>
+    <video id="video1" autoplay="true" playsinline="true"></video>
+    <video id="video2" autoplay="true" playsinline="true"></video>
 </div>
 
 <script>
@@ -39,7 +42,9 @@
 
     function negotiate() {
         pc.addTransceiver('video', { direction: 'recvonly' });
+        pc.addTransceiver('video', { direction: 'recvonly' });
         pc.addTransceiver('audio', { direction: 'recvonly' });
+
         return pc.createOffer().then((offer) => {
             return pc.setLocalDescription(offer);
         }).then(() => {
@@ -90,9 +95,12 @@
         pc = new RTCPeerConnection(config);
 
         // connect audio / video
+        let videoIndex = 0;
         pc.addEventListener('track', (evt) => {
             if (evt.track.kind == 'video') {
-                document.getElementById('video').srcObject = evt.streams[0];
+                const videoElementId = videoIndex === 0 ? 'video1' : 'video2';
+                document.getElementById(videoElementId).srcObject = evt.streams[0];
+                videoIndex++;
             } else {
                 document.getElementById('audio').srcObject = evt.streams[0];
             }
@@ -115,3 +123,4 @@
 
 </body>
 </html>
+
