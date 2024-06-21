@@ -8,6 +8,29 @@ from aiortc.contrib.media import MediaPlayer
 
 ROOT = os.path.dirname(__file__)
 
+class SingletonMediaPlayer:
+    _instances = {}
+
+    def __new__(cls, path, format=None, options=None):
+        if options is None:
+            options = {}
+        key = (path, format, tuple(sorted(options.items())))  # Using a tuple for options
+        if key not in cls._instances:
+            cls._instances[key] = super(SingletonMediaPlayer, cls).__new__(cls)
+            cls._instances[key]._initialized = False
+        return cls._instances[key]
+
+    def __init__(self, path, format=None, options={}):
+        if self._initialized:
+            return
+        self.player = MediaPlayer(path, format=format, options=options)
+        self._initialized = True
+
+    @property
+    def video(self):
+        return self.player.video
+
+
 webcam1 = None
 webcam2 = None
 pcs = set()
@@ -25,9 +48,13 @@ class VideoRelayTrack(MediaStreamTrack):
 def create_local_tracks():
     global webcam1, webcam2
 
-    options = {"framerate": "30", "video_size": "1280x720"}
-    webcam1 = MediaPlayer("/dev/video0", format="v4l2", options=options)
-    webcam2 = MediaPlayer("/dev/video4", format="v4l2", options=options)
+    if not webcam1:
+        options = {"framerate": "30", "video_size": "1280x720"}
+        webcam1 = SingletonMediaPlayer("/dev/video0", format="v4l2", options=options)
+    
+    if not webcam2:
+        options = {"framerate": "30", "video_size": "1280x720"}
+        webcam2 = SingletonMediaPlayer("/dev/video4", format="v4l2", options=options)
 
     return [
         VideoRelayTrack(webcam1.video),
