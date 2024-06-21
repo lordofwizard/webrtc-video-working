@@ -97,9 +97,12 @@
         // connect audio / video
         let videoIndex = 0;
         pc.addEventListener('track', (evt) => {
-            if (evt.track.kind == 'video') {
-                const videoElementId = videoIndex === 0 ? 'video1' : 'video2';
-                document.getElementById(videoElementId).srcObject = evt.streams[0];
+            if (evt.track.kind === 'video') {
+                if (videoIndex === 0) {
+                    document.getElementById('video1').srcObject = evt.streams[0];
+                } else if (videoIndex === 1) {
+                    document.getElementById('video2').srcObject = evt.streams[0];
+                }
                 videoIndex++;
             } else {
                 document.getElementById('audio').srcObject = evt.streams[0];
