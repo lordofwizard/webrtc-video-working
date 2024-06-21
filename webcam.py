@@ -4,22 +4,19 @@ import logging
 import os
 from aiohttp import web
 from aiortc import RTCPeerConnection, RTCSessionDescription
-from aiortc.contrib.media import MediaPlayer, MediaRelay
+from aiortc.contrib.media import MediaPlayer
 
 ROOT = os.path.dirname(__file__)
 
-relay = None
 webcam = None
 
 
 def create_local_tracks():
-    global relay, webcam
+    global webcam
 
     options = {"framerate": "30", "video_size": "1280x720"}
-    if relay is None:
-        webcam = MediaPlayer("/dev/video0", format="v4l2", options=options)
-        relay = MediaRelay()
-    return None, relay.subscribe(webcam.video)
+    webcam = MediaPlayer("/dev/video0", format="v4l2", options=options)
+    return None, webcam.video
 
 
 async def index(request):
@@ -78,4 +75,3 @@ if __name__ == "__main__":
     app.router.add_get("/", index)
     app.router.add_post("/offer", offer)
     web.run_app(app, host="0.0.0.0", port=6969)
-
