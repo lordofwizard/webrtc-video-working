@@ -8,15 +8,22 @@ from aiortc.contrib.media import MediaPlayer
 
 ROOT = os.path.dirname(__file__)
 
-webcam = None
+webcam1 = None
+webcam2 = None
 
 
 def create_local_tracks():
-    global webcam
+    global webcam1, webcam2
 
     options = {"framerate": "30", "video_size": "1280x720"}
-    webcam = MediaPlayer("/dev/video0", format="v4l2", options=options)
-    return None, webcam.video
+    webcam1 = MediaPlayer("/dev/video0", format="v4l2", options=options)
+    webcam2 = MediaPlayer("/dev/video4", format="v4l2", options=options)
+
+    return [
+        None,  # Placeholder for audio track, not used in this example
+        webcam1.video,
+        webcam2.video
+    ]
 
 
 async def index(request):
@@ -38,11 +45,15 @@ async def offer(request):
             await pc.close()
             pcs.discard(pc)
 
-    # Open media source
-    _, video = create_local_tracks()
+    # Open media sources
+    tracks = create_local_tracks()
 
-    if video:
-        pc.addTrack(video)
+    for idx, track in enumerate(tracks):
+        if track:
+            if idx == 1:
+                pc.addTrack(track)
+            elif idx == 2:
+                pc.addTrack(track)
 
     await pc.setRemoteDescription(offer)
 

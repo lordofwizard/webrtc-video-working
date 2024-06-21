@@ -10,15 +10,14 @@
     }
 
     video {
-        width: 100%;
+        width: 45%; /* Adjust width as needed */
+        margin: 10px;
     }
 
-    .option {
-        margin-bottom: 8px;
-    }
-
-    #media {
-        max-width: 1280px;
+    #videos {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     </style>
 </head>
@@ -27,11 +26,9 @@
 <button id="start" onclick="start()">Start</button>
 <button id="stop" style="display: none" onclick="stop()">Stop</button>
 
-<div id="media">
-    <h2>Media</h2>
-
-    <audio id="audio" autoplay="true"></audio>
-    <video id="video" autoplay="true" playsinline="true"></video>
+<div id="videos">
+    <video id="video1" autoplay playsinline></video>
+    <video id="video2" autoplay playsinline></video>
 </div>
 
 <script>
@@ -39,7 +36,7 @@
 
     function negotiate() {
         pc.addTransceiver('video', { direction: 'recvonly' });
-        pc.addTransceiver('audio', { direction: 'recvonly' });
+        pc.addTransceiver('video', { direction: 'recvonly' });
         return pc.createOffer().then((offer) => {
             return pc.setLocalDescription(offer);
         }).then(() => {
@@ -83,18 +80,18 @@
             sdpSemantics: 'unified-plan'
         };
 
-        //if (document.getElementById('use-stun').checked) {
         config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
-        //}
 
         pc = new RTCPeerConnection(config);
 
-        // connect audio / video
+        // connect video tracks
         pc.addEventListener('track', (evt) => {
-            if (evt.track.kind == 'video') {
-                document.getElementById('video').srcObject = evt.streams[0];
-            } else {
-                document.getElementById('audio').srcObject = evt.streams[0];
+            if (evt.track.kind === 'video') {
+                if (!document.getElementById('video1').srcObject) {
+                    document.getElementById('video1').srcObject = new MediaStream([evt.track]);
+                } else {
+                    document.getElementById('video2').srcObject = new MediaStream([evt.track]);
+                }
             }
         });
 
