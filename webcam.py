@@ -8,19 +8,22 @@ from aiortc.contrib.media import MediaPlayer, MediaRelay
 
 ROOT = os.path.dirname(__file__)
 
-relay = None
+relay1 = None
+relay2 = None
 webcam1 = None
 webcam2 = None
 
 def create_local_tracks():
-    global relay, webcam1, webcam2
+    global relay1, relay2, webcam1, webcam2
 
     options = {"framerate": "30", "video_size": "1280x720"}
-    if relay is None:
+    if relay1 is None:
         webcam1 = MediaPlayer("/dev/video0", format="v4l2", options=options)
+        relay1 = MediaRelay()
+    if relay2 is None:
         webcam2 = MediaPlayer("/dev/video4", format="v4l2", options=options)
-        relay = MediaRelay()
-    return relay.subscribe(webcam1.video), relay.subscribe(webcam2.video)
+        relay2 = MediaRelay()
+    return relay1.subscribe(webcam1.video), relay2.subscribe(webcam2.video)
 
 async def index(request):
     content = open(os.path.join(ROOT, "index.html"), "r").read()
