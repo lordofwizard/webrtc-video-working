@@ -33,6 +33,7 @@ class SingletonMediaPlayer:
 
 webcam1 = None
 webcam2 = None
+webcam3 = None
 pcs = set()
 
 class VideoRelayTrack(MediaStreamTrack):
@@ -46,7 +47,7 @@ class VideoRelayTrack(MediaStreamTrack):
         return frame
 
 def create_local_tracks():
-    global webcam1, webcam2
+    global webcam1, webcam2, webcam3
 
     if not webcam1:
         options = {"framerate": "30", "video_size": "1280x720"}
@@ -56,9 +57,14 @@ def create_local_tracks():
         options = {"framerate": "30", "video_size": "1280x720"}
         webcam2 = SingletonMediaPlayer("/dev/video4", format="v4l2", options=options)
 
+    if not webcam3:
+        options = {"framerate": "30", "video_size": "1920x1080"}
+        webcam3 = SingletonMediaPlayer("/dev/video6", format="v4l2", options=options)
+
     return [
         VideoRelayTrack(webcam1.video),
-        VideoRelayTrack(webcam2.video)
+        VideoRelayTrack(webcam2.video),
+        VideoRelayTrack(webcam3.video)
     ]
 
 async def index(request):
@@ -111,3 +117,4 @@ if __name__ == "__main__":
     app.router.add_get("/", index)
     app.router.add_post("/offer", offer)
     web.run_app(app, host="0.0.0.0", port=6969)
+

@@ -10,7 +10,7 @@
         }
 
         video {
-            width: 45%; /* Adjust width as needed */
+            width: 30%; /* Adjust width as needed */
             margin: 10px;
         }
 
@@ -29,6 +29,7 @@
 <div id="videos">
     <video id="video1" autoplay playsinline></video>
     <video id="video2" autoplay playsinline></video>
+    <video id="video3" autoplay playsinline></video>
 </div>
 
 <script>
@@ -37,10 +38,10 @@
     function negotiate() {
         pc.addTransceiver('video', { direction: 'recvonly' });
         pc.addTransceiver('video', { direction: 'recvonly' });
+        pc.addTransceiver('video', { direction: 'recvonly' });
         return pc.createOffer().then((offer) => {
             return pc.setLocalDescription(offer);
         }).then(() => {
-            // wait for ICE gathering to complete
             return new Promise((resolve) => {
                 if (pc.iceGatheringState === 'complete') {
                     resolve();
@@ -84,13 +85,14 @@
 
         pc = new RTCPeerConnection(config);
 
-        // connect video tracks
         pc.addEventListener('track', (evt) => {
             if (evt.track.kind === 'video') {
                 if (!document.getElementById('video1').srcObject) {
                     document.getElementById('video1').srcObject = new MediaStream([evt.track]);
-                } else {
+                } else if (!document.getElementById('video2').srcObject) {
                     document.getElementById('video2').srcObject = new MediaStream([evt.track]);
+                } else {
+                    document.getElementById('video3').srcObject = new MediaStream([evt.track]);
                 }
             }
         });
@@ -103,7 +105,6 @@
     function stop() {
         document.getElementById('stop').style.display = 'none';
 
-        // close peer connection
         setTimeout(() => {
             pc.close();
         }, 500);
@@ -112,3 +113,4 @@
 
 </body>
 </html>
+
